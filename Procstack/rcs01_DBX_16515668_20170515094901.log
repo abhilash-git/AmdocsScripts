@@ -1,0 +1,161 @@
+Mars-SDP1:sdp2:/usr/local/jboss/log# cat /staging/billing/data/log/rcs01_DBX_16515668_20170515094901.log
+******** PRINTING DBX FOR PROCESS : PID=16515668 *****
+ cbsuser 16515668        1   4 09:47:01      -  0:00 ./ure -R -ratingdb 1 -SHM 250 -billingdb 1 -server -rcsname rcs01 -fullmask -log ure_onDemand_MAIN1.log 
+Pstack: Preparing thread Mon May 15 09:49:02 MSK 2017
+Waiting to attach to process 16515668 ...
+Successfully attached to ure.
+Type 'help' for help.
+reading symbolic information ...
+
+attached in msgrcv at 0x9000000002508b8 ($t1)
+0x9000000002508b8 (msgrcv+0xd8) e8410028          ld   r2,0x28(r1)
+ thread  state-k     wchan            state-u    k-tid mode held scope function
+>$t1     run                          running  16777907   k   no   sys  msgrcv            
+ $t11    wait      0xf1000a303eae7cb0 running  26935625   k   no   sys  nsleep            
+ $t3     wait                         running  18481727   k   no   sys                    
+ $t4     wait      0xf1000a3800962e18 running  16449695   k   no   sys                    
+ $t5     wait      0xf1000e0000d1d8c8 running  84279695   k   no   sys                    
+ $t6     wait      0xf1000a303eae59b0 running  40829549   k   no   sys  nsleep            
+ $t7     wait      0xf1000a3800962e18 running  41419629   k   no   sys                    
+ $t8     wait      0xf1000a3800962e18 running  26346407   k   no   sys                    
+ $t9     wait      0xf1000a38009637d8 running  9831119   k   no   sys                    
+ $t10    wait      0xf1000a2848a11848 running  29623239   k   no   sys                    
+
+====================================
+
+Waiting to attach to process 16515668 ...
+Successfully attached to ure.
+Type 'help' for help.
+reading symbolic information ...
+
+attached in msgrcv at 0x9000000002508b8 ($t1)
+0x9000000002508b8 (msgrcv+0xd8) e8410028          ld   r2,0x28(r1)
+....................................
+t1 stack details
+Mon May 15 09:49:27 MSK 2017
+....................................
+msgrcv(??, ??, ??, ??, ??) at 0x9000000002508b8
+SysQueueIPC::Receive(void*,long,int,int,int,double,int)(this = 0x00000001102c60f0, opBuf = 0x00000001100f6048, ipType = 0, ipLength = 32768, ipTruncate = 1, ipBlock = 1, ipTimeout = 1.0, ipAlertable = 0), line 194 in "SysQueueIPC.C"
+Ipc::Receive(void*,long,int,int,int,double,int)(opBuf = 0x00000001100f6048, ipType = 0, ipLength = 32768, ipTruncate = 1, ipBlock = 1, ipTimeout = 1.0, ipAlertable = 0), line 70 in "Ipc.C"
+unnamed block in main(argc = 14, argv = 0x0fffffffffffe070), line 1677 in "main.C"
+main(argc = 14, argv = 0x0fffffffffffe070), line 1677 in "main.C"
+....................................
+t3 stack details
+Mon May 15 09:49:28 MSK 2017
+....................................
+.() at 0x14804b970
+IOMux.select(int,fd_set*,fd_set*,fd_set*,timeval*)(0x2500000025, 0x110921568, 0x110923568, 0x110925568, 0x1112c54d0), line 229 in "time.h"
+IOMux::ProcessIOEvent(int,int)(timeout_secs = 1, timeout_usecs = 0), line 92 in "IOMux.C"
+unnamed block in socket_server_thread(void*)(arg = 0x00000000ffffe070), line 3140 in "main.C"
+socket_server_thread(void*)(arg = 0x00000000ffffe070), line 3140 in "main.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x0000000110376c90), line 187 in "ThreadManager.C"
+....................................
+t4 stack details
+Mon May 15 09:49:29 MSK 2017
+....................................
+.() at 0x90000004f868d60
+SocketServer::BlockForRequest(UreRequest&)(iopRequest = &(...)), line 239 in "SocketServer.C"
+unnamed block in socket_handler_thread(void*)(arg = 0x0000000000000001), line 3201 in "main.C"
+socket_handler_thread(void*)(arg = 0x0000000000000001), line 3201 in "main.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x0000000110436790), line 187 in "ThreadManager.C"
+....................................
+t5 stack details
+Mon May 15 09:49:30 MSK 2017
+....................................
+.() at 0x90000004e8d1e58
+nttrd(??, ??, ??, ??, ??) at 0x900000002bf4c30
+nsprecv(??, ??, ??) at 0x900000002d90860
+nsrdr(??, ??) at 0x9000000034d82b0
+nsdo(0x11069d358, 0x5500000055, 0x1106c30e0, 0x11069d5d0, 0x110b1a100, 0x0, 0x300000003) at 0x900000002b659f0
+nsbrecv(0x11069d358, 0x11069d548, 0x110b1a100, 0x0) at 0x900000002b695e0
+nioqrc(??, ??, ??, ??, ??) at 0x9000000034f4788
+ttcdrv(??, ??) at 0x9000000035123b0
+nioqwa(??, ??, ??, ??, ??, ??) at 0x9000000034f6dd8
+upirtrc(0x110b1d610, 0x0, 0x0, 0x11068b440, 0x11068c3b0, 0x9001000a0492758, 0x11068cbb0, 0x1112b2548) at 0x900000002b496e0
+kpurcsc(??, ??, ??, ??, ??, ??, ??, ??) at 0x900000002b5cbac
+kpuexecv8(??, ??, ??, ??, ??, ??) at 0x9000000032cf2d8
+kpuexec(??, ??, ??, ??, ??, ??, ??, ??) at 0x9000000032d0c40
+OCIStmtExecute(??, ??, ??, ??, ??, ??, ??, ??) at 0x900000002b541c0
+unnamed block in OciStatement::_Execute(const char*,int)(this = 0x0000000111225050, ipFile = "RCSowningDB.cpp", ipLine = 1193), line 216 in "OciStatement.C"
+OciStatement::_Execute(const char*,int)(this = 0x0000000111225050, ipFile = "RCSowningDB.cpp", ipLine = 1193), line 216 in "OciStatement.C"
+rcs::RCSowningDB::UpdateRCinstanceNorm(int,rcs::RcInstUpdate_t*,int)(this = 0x0000000110b289a0, lConn = 8, rc_inst = 0x00000001107ed1f0, nSize = 1), line 1193 in "RCSowningDB.cpp"
+unnamed block in rcs::RCSowningDB::saveInstanceRecords(Transaction&)(this = 0x0000000110b289a0, lTransaction = &(...)), line 1011 in "RCSowningDB.cpp"
+rcs::RCSowningDB::saveInstanceRecords(Transaction&)(this = 0x0000000110b289a0, lTransaction = &(...)), line 1011 in "RCSowningDB.cpp"
+rcs_MsgDone::ProcessRequestBulk(Transaction&,Arb_date&,unsigned char,int,int,int,int,NrcTermInstInfo*,bool)(0x110b22b60, 0x110b225e0, 0x110b22794, 0xa0000000000000a, 0x0, 0x0, 0x0, 0x0) at 0x90000000b7207e8
+rcs_MsgDone::HandleChargeRequest(const ChargeRequest&,ChargeResponse&)(0x110b22b60, 0x110b291c0, 0x110b29508) at 0x90000000b72e160
+rcs_Main::HandleChargeRequest(int,const ChargeRequest&,ChargeResponse&)(0x11092a3d0, 0x200000002, 0x110b291c0, 0x110b29508) at 0x90000000b6bf778
+RcsRequestHandler::HandleChargeReq(const UreRequest&)(this = 0x0000000110b294f0, ipMsg = &(...)), line 389 in "RcsRequestHandler.C"
+RcsRequestHandler::RxMsg(const UreRequest&)(this = 0x0000000110b294f0, ipMsg = &(...)), line 106 in "RcsRequestHandler.C"
+unnamed block in MsgRouter<int,UreRequest>::Route(const int&,const UreRequest&)(this = 0x0000000110b294d0, ipKey = 1, ipMsg = &(...)), line 71 in "MsgRouter.h"
+MsgRouter<int,UreRequest>::Route(const int&,const UreRequest&)(this = 0x0000000110b294d0, ipKey = 1, ipMsg = &(...)), line 71 in "MsgRouter.h"
+unnamed block in socket_handler_thread(void*)(arg = 0x0000000000000002), line 3206 in "main.C"
+socket_handler_thread(void*)(arg = 0x0000000000000002), line 3206 in "main.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x00000001104994d0), line 187 in "ThreadManager.C"
+....................................
+t6 stack details
+Mon May 15 09:49:33 MSK 2017
+....................................
+raise.nsleep(??, ??) at 0x90000000002bcc4
+sleep(??) at 0x900000000142f68
+rcs::LockAccountClass::LockAndQueryAccount(int,int,int,short,int&,short&,int&,Ure::RCS_RUNNING_MODE)(conn = 3, account_no = 0, subscr_no = 124934388, subscr_no_resets = 0, fetched_account_no = 0, large_corp_account = 2304, rating_db_id = 1, rcs_running_mode = RCS_CHARGE_REQ), line 2516 in "instance_batch.cpp"
+unnamed block in rcs::LockAccountClass::LockAccountFunc(int,Ure::RCS_RUNNING_MODE,int,int,short,int,int,int&,bool)(conn = 3, rcs_running_mode = RCS_CHARGE_REQ, account_no = 0, subscr_no = 124934388, subscr_no_resets = 0, local_server_id = 1, account_server_id = 1, account_rating_db_id = 1, need_lock_A_S = true), line 2272 in "instance_batch.cpp"
+rcs::LockAccountClass::LockAccountFunc(int,Ure::RCS_RUNNING_MODE,int,int,short,int,int,int&,bool)(conn = 3, rcs_running_mode = RCS_CHARGE_REQ, account_no = 0, subscr_no = 124934388, subscr_no_resets = 0, local_server_id = 1, account_server_id = 1, account_rating_db_id = 1, need_lock_A_S = true), line 2272 in "instance_batch.cpp"
+rcs_MsgDone::HandleChargeRequest(const ChargeRequest&,ChargeResponse&)(0x110c1cb60, 0x110c231c0, 0x110c23508) at 0x90000000b72dc90
+rcs_Main::HandleChargeRequest(int,const ChargeRequest&,ChargeResponse&)(0x11092a3d0, 0x300000003, 0x110c231c0, 0x110c23508) at 0x90000000b6bf778
+RcsRequestHandler::HandleChargeReq(const UreRequest&)(this = 0x0000000110c234f0, ipMsg = &(...)), line 389 in "RcsRequestHandler.C"
+RcsRequestHandler::RxMsg(const UreRequest&)(this = 0x0000000110c234f0, ipMsg = &(...)), line 106 in "RcsRequestHandler.C"
+unnamed block in MsgRouter<int,UreRequest>::Route(const int&,const UreRequest&)(this = 0x0000000110c234d0, ipKey = 1, ipMsg = &(...)), line 71 in "MsgRouter.h"
+MsgRouter<int,UreRequest>::Route(const int&,const UreRequest&)(this = 0x0000000110c234d0, ipKey = 1, ipMsg = &(...)), line 71 in "MsgRouter.h"
+unnamed block in socket_handler_thread(void*)(arg = 0x0000000000000003), line 3206 in "main.C"
+socket_handler_thread(void*)(arg = 0x0000000000000003), line 3206 in "main.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x0000000110473590), line 187 in "ThreadManager.C"
+....................................
+t7 stack details
+Mon May 15 09:49:34 MSK 2017
+....................................
+.() at 0x90000004f868d60
+SocketServer::BlockForRequest(UreRequest&)(iopRequest = &(...)), line 239 in "SocketServer.C"
+unnamed block in socket_handler_thread(void*)(arg = 0x0000000000000004), line 3201 in "main.C"
+socket_handler_thread(void*)(arg = 0x0000000000000004), line 3201 in "main.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x00000001104d6290), line 187 in "ThreadManager.C"
+....................................
+t8 stack details
+Mon May 15 09:49:35 MSK 2017
+....................................
+.() at 0x90000004f868d60
+SocketServer::BlockForRequest(UreRequest&)(iopRequest = &(...)), line 239 in "SocketServer.C"
+unnamed block in socket_handler_thread(void*)(arg = 0x0000000000000005), line 3201 in "main.C"
+socket_handler_thread(void*)(arg = 0x0000000000000005), line 3201 in "main.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x00000001105337d0), line 187 in "ThreadManager.C"
+....................................
+t9 stack details
+Mon May 15 09:49:36 MSK 2017
+....................................
+.() at 0x14c0389f4
+ThreadSafeQueue<WorkQueueItem>::GetElement(WorkQueueItem&,bool)(this = 0x00000001100087f8, opFront = &(...), ipBlock = true), line 65 in "ThreadSafeQueue.h"
+ThreadSafeQueue<WorkQueueItem>::BlockForElement(WorkQueueItem&)(this = 0x00000001100087f8, opElement = &(...)), line 60 in "ThreadSafeQueue.h"
+WorkQueue::BlockForWork(WorkQueueItem&)(opMsg = &(...)), line 291 in "WorkQueue.C"
+unnamed block in worker_thread(void*)(arg = 0x0000000110f11690), line 314 in "main.C"
+worker_thread(void*)(arg = 0x0000000110f11690), line 314 in "main.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x0000000110538f90), line 187 in "ThreadManager.C"
+....................................
+t10 stack details
+Mon May 15 09:49:37 MSK 2017
+....................................
+.() at 0x90000004802dfa0
+__filbuf(??) at 0x90000000002d4e0
+fgets(??, ??, ??) at 0x9000000000ffd78
+MaintenanceAndMonitor::TraceProcessStack()(), line 460 in "MaintenanceAndMonitor.C"
+unnamed block in MaintenanceAndMonitor::MonitorThread(void*)(arg = (nil)), line 192 in "MaintenanceAndMonitor.C"
+unnamed block in MaintenanceAndMonitor::MonitorThread(void*)(arg = (nil)), line 192 in "MaintenanceAndMonitor.C"
+MaintenanceAndMonitor::MonitorThread(void*)(arg = (nil)), line 192 in "MaintenanceAndMonitor.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x00000001102d0230), line 187 in "ThreadManager.C"
+....................................
+t11 stack details
+Mon May 15 09:49:38 MSK 2017
+....................................
+raise.nsleep(??, ??) at 0x90000000002bcc4
+sleep(??) at 0x900000000142f68
+rcs_measurement_thread(void*)(arg = (nil)), line 3237 in "main.C"
+ThreadManager::WrapperRoutine(void*)(ipArg = 0x0000000110725450), line 187 in "ThreadManager.C"
+***End of Log***
