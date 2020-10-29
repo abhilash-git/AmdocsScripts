@@ -4,7 +4,7 @@
 # Just to ease my life and not to interfere in others!!!
 # yey and its a lot of FUN..
 #-----------------------------------------------------------------
-insideScriptgetVersion(){ echo "Version # V 10.9.3 Last Edited: 13-08-2020" ; }
+insideScriptgetVersion(){ echo "Version # V 11 Last Edited: 13-08-2020" ; }
 #-----------------------------------------------------------------
 #-----------------------------------------------------------------
 
@@ -117,6 +117,7 @@ echo -ne "
 7. _crninfo - shows SID and CRN info of *OCS* file
 8. my - go to tracing location and list all directories, if argument present then tries to go to that path
 9. ip - gives the current IP
+10. sftcbs | sftcbs ssh
 
 "
 
@@ -666,3 +667,51 @@ s()
         grep -i abhilash /home/sncpuser/UserSubDetails
     fi
 }
+
+#-----------------------------------------------------------------
+# sftcbs to connect to release DB easily
+# usernane and passwords are removed
+#-----------------------------------------------------------------
+
+
+
+sftcbs ()
+{
+    if [[ "$1" == "ssh" ]]; then
+        cat > /tmp/sftcbs  <<'EOF'
+#!/usr/bin/expect
+spawn ssh username@ip
+expect "password:"
+send "password\n"
+expect "Last login"
+expect "$ "
+send "cd /proj/CBS/DIT/\n"
+expect "$ "
+send "ls -lrt \n"
+expect "$ "
+interact
+EOF
+
+    else
+        cat > /tmp/sftcbs  <<'EOF'
+#!/usr/bin/expect
+spawn sftp username@ip
+expect "password:"
+send "password\n"
+expect "sftp>"
+send "cd /proj/CBS/DIT/\n"
+expect "sftp>"
+send "ls -lrt \n"
+expect "sftp>"
+interact
+EOF
+
+    fi
+    if [[ ! -z $1 ]] && [[ "$1" != "ssh" ]]; then
+        sed -i "s|/proj/CBS/DIT/|$1|g" "/tmp/sftcbs";
+    fi;
+    chmod +x /tmp/sftcbs;
+    /tmp/sftcbs
+}
+
+

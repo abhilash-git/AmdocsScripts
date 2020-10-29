@@ -1,0 +1,11 @@
+
+	1. loc
+	2. loc <base|ure|RCS>
+	3. loc filter <start line_number> <end line_number> <file_name>
+	4. loc stmt <optional stmt_number>
+	5. log mode <rcs_running_mode>
+	6. loc PR <pr_number> 
+	7. loc -relate <filename>
+	8. loc -copyCode <dest_directory>
+	9. loc -modFile <time_in_minutes> # to look in curr loc, eg. loc -modeFile curr 120
+

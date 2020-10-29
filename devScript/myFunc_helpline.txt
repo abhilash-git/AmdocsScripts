@@ -1,0 +1,40 @@
+
+[0;34m 	 	
+Version # V 11 Last Edited: 13-08-2020
+======================================
+
+[0;31m 1. [0;34m 	 append2 <filename pattern> <append string>
+[0;36m 		 eg. append2 .txt bkp                Replace all .txt to .txt_bkp
+[0;31m 2. [0;34m 	 remAppend <filename pattern> <remove pattern>
+[0;36m 		 eg. remAppend .txt_bkp bkp          Replace to .txt
+[0;31m 3. [0;34m 	 getTrace <voice/diameter/notif/ussd/eci/osa>
+[0;36m 		 eg. getTrace voice
+[0;31m 4. [0;34m 	 paraGet <string> <filename> # to get the paragraph
+[0;36m 		 eg. paraGet "BALANCE_EXC_INC_ID= 5980" BAL_EXCL_INCL.log
+[0;31m 5. [0;34m 	 tsp <latest=load-latest | tail=show last#tr | dump <table_name, dump alone will display table> 
+[0;36m 		 eg. tsp dump BAL_EXCL_INCL || tsp dump 
+[0;31m 6. [0;34m 	 underline# to get the balances used in trace
+[0;36m 		 eg. give underline to text followed, underlineWith variable changes default '-' 
+[0;31m 7. [0;34m 	 _db # connect to db defined in commonCfg
+[0;36m 		 eg. _db 
+[0;31m 8. [0;34m 	 _desc # describe the table 
+[0;36m 		 eg. _desc usage_record_main 
+[0;31m 9. [0;34m 	 _dbaccess # access the transpose of the table
+[0;36m 		 eg. _dbaccess -t account_subscriber -w subscr_no=123
+[0;31m 10. [0;34m 	 watch # watch a process, 2nd arg to continue watch if found
+[0;36m 		 eg. watch ocs 1 -- watch for ocs and if found also continue watch
+[0m
+HIDDEN & ALIAS
+==============
+
+1. komd - kill all omd
+2. _abh - reload the setting
+3. _e   - edit the getFunc
+4. _balget - show balances and req of ure traces
+5. _ocsreq - show insigts of OCS traces
+6. _filter - filter traces, eg. _filter <SID> <SID value> <file> | _filter <CRN> <CRN value> <file>
+7. _crninfo - shows SID and CRN info of *OCS* file
+8. my - go to tracing location and list all directories, if argument present then tries to go to that path
+9. ip - gives the current IP
+10. sftcbs | sftcbs ssh
+
