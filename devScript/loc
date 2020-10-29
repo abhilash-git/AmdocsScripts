@@ -1,0 +1,204 @@
+# Author : Abhilash.cs@amdocs.com
+
+_help(){
+echo
+echo -e "\t1. loc"
+echo -e "\t2. loc <base|ure|RCS>"
+echo -e "\t3. loc filter <start line_number> <end line_number> <file_name>"
+echo -e "\t4. loc stmt <optional stmt_number>"
+echo -e "\t5. log mode <rcs_running_mode>"
+echo -e "\t6. loc PR <pr_number> "
+echo -e "\t7. loc -relate <filename>"
+echo -e "\t8. loc -copyCode <dest_directory>"
+echo -e "\t9. loc -modFile <time_in_minutes> # to look in curr loc, eg. loc -modeFile curr 120"
+echo
+}
+
+
+locations()
+{
+echo "##OFFLINE:                                "
+echo "##bash-3.1$ cd /usr1/arbor/mps_src/apps   "
+echo "##----------------------------------------"
+echo "## MCAP,LTP,URT,MHT,RCT,ORLTP,MIUB,URC located in the /usr1/arbor/mps_src "
+echo "## /usr1/arbor/mps_src/libs/gfr_common    "
+echo "##----------------------------------------"
+echo "##COM  /usr1/arbor/denver_src"
+echo "##----------------------------------------"
+echo "##Winmiu  /usr1/arbor/nt_custinfo"
+echo "##----------------------------------------"
+echo
+echo "##----------------------------------------"
+echo "##UREBASE /vob/RTBS/SLFSDP/"
+echo "##URE /vob/RTBS/SLFSDP/URE"
+echo "##----------------------------------------"
+echo "##CCAP  /vob/RTBS/SLFSDP/URE/ccap"
+echo "##----------------------------------------"
+echo "##SLF  cd /vob/RTBS/SLFSDP/            "
+echo "##----------------------------------------"
+echo "##RECHARGE  /vob/RTBS/SLFSDP/sdp/rechargeAgent"
+echo
+echo "##----------------------------------------"
+echo "##RCS /usr1/arbor/rcnrcs_src              "
+echo "##TAX /usr1/arbor/tax_src                 "
+echo "##BPC /usr1/arbor/bp_common_src/ -- more  "
+echo "##ARCH /usr1/arbor/arch_src/  -- /usr1/arbor/arch_site/"
+echo "##----------------------------------------"
+echo
+echo "##----------------------------------------"
+echo "##IPF /vob/RTBS/IPF                       "
+echo "##----------------------------------------"
+echo
+echo "##----------------------------------------"
+echo "##DBPROC /usr1/arbor/rating_sdp_site/dba/common/dynamic/packages/rating"
+echo "##----------------------------------------"
+echo
+echo "##----------------------------------------"
+echo "##DWH /vob/RTBS/DWH_ENGINE                "
+echo "##----------------------------------------"
+
+export PATH="/devserv-home5/mli/bin/:/devserv-home5/mli/bin/:/opt/blackduck/protexIP/bin:/usr/lib/qt-3.3/bin:/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/u1/acs/bin:/sbin:/u1/acs/bin:/sbin"
+
+
+echo "##PyLeWA4y"
+
+}
+
+whichStmt=$2
+re='^[0-9]+$'
+if  [[ $whichStmt =~ $re ]] ; then
+   temp="stmt=$whichStmt"
+   whichStmt=$temp
+fi
+
+changeloc()
+{
+cd $1
+pwd
+}
+
+
+getOciStatment(){
+grep "STMT_" /vob/RTBS/SLFSDP/database/oracle/OciCommon.h |awk '{print "stmt="NR-2, "name="$0}'
+}
+
+getRunningMode(){
+ grep -E 'RCS_.*_REQ|RCS_BATCH' /vob/RTBS/SLFSDP/URE/common/RcNrcStructs.h|awk '{print "running_mode="NR-1, "for="$0}'
+}
+
+
+getPrChanged(){
+if [[ -z $1 ]];then
+_help
+exit;
+fi
+
+if [[ -z $2 ]];then
+for i in `ct  find . -version 'attr_sub(PRNUMBER,==,"'''$1'''")' -pri`;do echo $i; ct diff -pre -ser  $i;echo ;echo ;echo "_______";done
+if [[ -z $i ]];then
+for i in `ct  find . -version 'attr_sub(PRNUM,==,"'''$1'''")' -pri`;do echo $i; ct diff -pre -ser  $i;echo ;echo ;echo "_______";done
+fi
+else
+for i in `ct  find . -version 'attr_sub(PRNUMBER,==,"'''$1'''")' -pri`;do echo $i;done
+if [[ -z $i ]];then
+for i in `ct  find . -version 'attr_sub(PRNUM,==,"'''$1'''")' -pri`;do echo $i;done
+fi
+fi
+}
+
+getRelatedLocation(){
+find /vob/RTBS/SLFSDP/ -name Imakefile|xargs grep "$1"
+}
+
+copyCode(){
+lview=`ct pwv|grep '^Working' |awk '{print $NF}'`
+if [[ "$lview" != "**" ]];then
+if [[ ! -z $1 ]];then
+l_dir=$1
+mkdir ~/${l_dir}
+if [[ $? -eq 0 ]];then
+ALL_TYPES='.c .cc .C .cpp .pc .h .sql .sh'
+ALL_TYPES='.c .cc .C .cpp .pc .h .sql .sh'
+loc_dir=`ct catcs|grep -vE "^#|^$" |awk '{print $2}'|sort -u|grep -ivE  "3p|PTOOLS|ORCH|omap|Jprompts"|grep -iE "mps|oam|rating|RTBS/|SEC" |sed -e 's/\/\.\.\.//g'`
+for loc in $loc_dir; do echo "looking in loc => $loc"; for file_type in $(eval echo "$ALL_TYPES"); do    echo "File Type: ${file_type} =>";    echo "-------------------";    find $loc -name "*${file_type}" -exec cp --parents \{\} ~/${l_dir} \;  2>/dev/null;    echo "-------------------"; done; done
+else
+echo "Failed to copy code"
+fi
+else
+echo "please provide dest directory to copy"
+fi
+else
+echo "No View is set/not in working directory"
+fi
+}
+
+modFile(){
+# find file modified in $1 argument minutes
+changeloc=1
+p=`pwd`
+
+if [[ "$1" == "curr" ]]; then
+echo "Looking in current location and not BASE location"
+shift 1
+else
+echo "Looking in "
+loc BASE
+fi
+
+tim=$1
+if [[ ! -z $tim ]];then
+c=`pwd`
+echo "_____Libs"
+find ./ -type f -cmin -${tim} |grep -E '.so$|.a$|.o$' |grep -vE "simulator_|test_"
+echo "_____Bins"
+find ./ -type f -perm 775 -cmin -${tim} |grep -vE './tools/|test_|.so$|.a$|.o$'
+if [[ "$p" != "$c" ]];then cd -;fi
+else
+echo "modfile <time_in_minutes>"
+echo "Enter the time to locate file modified within that time"
+fi
+}
+
+
+string=$1
+if [ -z $string ];
+then
+        locations
+elif [[ "filter" == "$string" ]];
+then
+        sed -n "$2,$3p" $4
+elif [[ "$string" == "stmt" ]];
+then
+        if [[ -z $whichStmt ]];then
+        getOciStatment
+        else
+        getOciStatment |grep -i $whichStmt
+        fi
+elif [[ "$string" == "mode" ]];
+then
+getRunningMode
+elif [[ "$string" == "PR" ]];
+then
+getPrChanged $2 $3
+elif [[ "$string" == "-help" ]] || [[ "$string" == "-h" ]] || [[ "$string" == "--h" ]];
+then
+_help
+elif [[ "$string" == "-relate" ]];
+then
+getRelatedLocation $2
+elif [[ "$string" == "-copyCode" ]];
+then
+copyCode $2
+elif [[ "$string" == "-modFile" ]];
+then
+shift 1
+modFile "$*"
+else
+        if [[ `locations |grep -i $string |wc -l` -eq 1 ]];
+        then
+                locate=`locations |grep -i $string|awk '{print $2}'`
+                changeloc $locate
+        else
+                locations |grep -i $string
+        fi
+fi
