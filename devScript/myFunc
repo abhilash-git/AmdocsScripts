@@ -1,0 +1,665 @@
+#-----------------------------------------------------------------
+# abhilash.c@amdocs.com
+#
+# Just to ease my life and not to interfere in others!!!
+# yey and its a lot of FUN..
+#-----------------------------------------------------------------
+insideScriptgetVersion(){ echo "Version # V 10.9.3 Last Edited: 13-08-2020" ; }
+#-----------------------------------------------------------------
+#-----------------------------------------------------------------
+
+
+#-----------------------------------------------------------------
+# couple of colors to use
+#-----------------------------------------------------------------
+
+export EDITOR=vi
+
+BLACK='\033[0;30m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BROWN_ORANGE='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+LIGHT_GRAY='\033[0;37m'
+DARK_GRAY='\033[1;30m'
+LIGHT_RED='\033[1;31m'
+LIGHT_GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+LIGHT_BLUE='\033[1;34m'
+LIGHT_PURPLE='\033[1;35m'
+LIGHT_CYAN='\033[1;36m'
+WHITE='\033[1;37m'
+NC='\033[0m'
+
+#-----------------------------------------------------------------
+# setup the env mark _abh
+#-----------------------------------------------------------------
+
+#PS1="\[\e[7m\]$PS1\[\e(B\e[m\]"
+ol=`expr \`date +%S\` % 5`
+if [[ $ol -eq 0 ]];then ((ol++));fi
+if [[ ! -z $old_val ]]&&[[ $old_val -eq $ol ]];then ((ol++));fi
+old_val=$ol
+export PS1="\e[1;4${ol}m\][_abh]\e[0m\][\u@\h \W]> "
+
+#export PS1="\e[0;3${ol}m_abh \D{%T} -> \e[m"
+
+
+#-----------------------------------------------------------------
+# bunch of aliases
+#-----------------------------------------------------------------
+
+alias col_grep='grep  --color=always'
+#alias komd='killall /home/omni/bin/omd && echo "killed"'
+alias _abh='. ~/_abh/getFunc'
+alias _req='col_grep REQ *txt'
+alias _ocsreq='col_grep -E "ocs_event|_REQ|Slm TxMsg| Charge Item Id rg=|\[OCS\-|Update request|initRtb: units|reserved amount balance|TotConsumAmt| RC=" *OCS*txt*'
+alias _e='vi ~/_abh/getFunc'
+alias ll='ls -lrt --color=tty'
+
+#-----------------------------------------------------------------
+# underline whatever
+#-----------------------------------------------------------------
+underline()
+{
+    if [[ -z $underlineWith ]]; then
+        underlineWith="-";
+    fi;
+    echo $@;
+    echo $@ | sed 's/./'${underlineWith}'/g'
+}
+
+#-----------------------------------------------------------------
+# helpline!!!!
+#-----------------------------------------------------------------
+
+helpMe(){
+echo
+
+echo -e "$BLUE \t \t"
+underlineWith==
+underline `insideScriptgetVersion`
+echo
+
+echo -e "$RED 1. $BLUE \t append2 <filename pattern> <append string>"
+echo -e "$CYAN \t\t eg. append2 .txt bkp                Replace all .txt to .txt_bkp"
+echo -e "$RED 2. $BLUE \t remAppend <filename pattern> <remove pattern>"
+echo -e "$CYAN \t\t eg. remAppend .txt_bkp bkp          Replace to .txt"
+echo -e "$RED 3. $BLUE \t getTrace <voice/diameter/notif/ussd/eci/osa>"
+echo -e "$CYAN \t\t eg. getTrace voice"
+echo -e "$RED 4. $BLUE \t paraGet <string> <filename> # to get the paragraph"
+echo -e "$CYAN \t\t eg. paraGet \"BALANCE_EXC_INC_ID= 5980\" BAL_EXCL_INCL.log"
+echo -e "$RED 5. $BLUE \t tsp <latest=load-latest | tail=show last#tr | dump <table_name, dump alone will display table> "
+echo -e "$CYAN \t\t eg. tsp dump BAL_EXCL_INCL || tsp dump "
+echo -e "$RED 6. $BLUE \t underline# to get the balances used in trace"
+echo -e "$CYAN \t\t eg. give underline to text followed, underlineWith variable changes default '-' "
+echo -e "$RED 7. $BLUE \t _db # connect to db defined in commonCfg"
+echo -e "$CYAN \t\t eg. _db "
+echo -e "$RED 8. $BLUE \t _desc # describe the table "
+echo -e "$CYAN \t\t eg. _desc usage_record_main "
+echo -e "$RED 9. $BLUE \t _dbaccess # access the transpose of the table"
+echo -e "$CYAN \t\t eg. _dbaccess -t account_subscriber -w subscr_no=123"
+echo -e "$RED 10. $BLUE \t watch # watch a process, 2nd arg to continue watch if found"
+echo -e "$CYAN \t\t eg. watch ocs 1 -- watch for ocs and if found also continue watch"
+
+echo -e "$NC"
+
+underline HIDDEN \& ALIAS
+echo -ne "
+1. komd - kill all omd
+2. _abh - reload the setting
+3. _e   - edit the getFunc
+4. _balget - show balances and req of ure traces
+5. _ocsreq - show insigts of OCS traces
+6. _filter - filter traces, eg. _filter <SID> <SID value> <file> | _filter <CRN> <CRN value> <file>
+7. _crninfo - shows SID and CRN info of *OCS* file
+8. my - go to tracing location and list all directories, if argument present then tries to go to that path
+9. ip - gives the current IP
+
+"
+
+}
+
+#-----------------------------------------------------------------
+# find the pattern and append with new extension
+# used for backup the file
+#-----------------------------------------------------------------
+append2 ()
+{
+    find_pattern=$1;
+    append_pattern=$2;
+    if [[ -z $find_pattern ]] || [[ -z $append_pattern ]]; then
+        helpMe;
+        return;
+    fi;
+    for i in `ls -lrt *${find_pattern}*|awk '{print $9}'`;
+    do
+        mv $i ${i}_${append_pattern};
+    done
+}
+
+
+#-----------------------------------------------------------------
+# find a pattern and remove the a pattern in the file
+# incase a wrong backup name (rarely used)
+#-----------------------------------------------------------------
+
+remAppend ()
+{
+    find_pattern=$1;
+    replace_what=$2;
+    if [[ -z $find_pattern ]] || [[ -z $replace_what ]]; then
+        helpMe;
+        return;
+    fi;
+    for i in `ls -lrt *${find_pattern}*|awk '{print $9}'`;
+    do
+        var=$i;
+        temp_var=${var%_${replace_what}*};
+        if ! [[ "${var}" == "${temp_var}" ]]; then
+            mv $i ${temp_var};
+        fi;
+    done
+}
+
+#-----------------------------------------------------------------
+# new way to collect traces
+#-----------------------------------------------------------------
+getTrace ()
+{
+    echo -e "$LIGHT_RED";
+
+    grepVal=`echo $*`
+    var="";
+    if [[ `echo $grepVal|grep -iE "voice|pps|ina"|wc -l` -gt 0 ]]; then
+        var+="OPPS|TPPS|INA";
+    fi;
+    if [[ `echo $grepVal|grep -iE "ocs|diameter|dia"|wc -l` -gt 0 ]]; then
+        var+="|OCS";
+    fi;
+    if [[ `echo $grepVal|grep -iE "eci|pmts|payment"|wc -l` -gt 0 ]]; then
+        var+="|PMTSVR";
+    fi;
+    if [[ `echo $grepVal|grep -iE "notif|notifagent"|wc -l` -gt 0 ]]; then
+        var+="|NOTIFAGENT";
+    fi;
+    if [[ `echo $grepVal|grep -iE "ussd"|wc -l` -gt 0 ]]; then
+        var+="|USSD_SLF|IP_USSD_IPF";
+    fi;
+    if [[ `echo $grepVal|grep -iE "osa"|wc -l` -gt 0 ]]; then
+        var+="|SLF_OSA";
+    fi;
+    if [[ `echo $grepVal|grep -iE "tsp"|wc -l` -gt 0 ]]; then
+        var+="|TSP";
+    fi;
+    #echo $var;
+
+    if [[ "$var" != "" ]]; then
+        var1=`echo $var|sed -e 's/^|//g'`
+        var=$var1
+        var+="|URE_";
+        echo $var;
+        dateInSec=`date +"%Y%m%d-%H%M%S"`;
+        for app in `DFcat cestart.202|grep -iE $var |awk '{print $1}'|grep '^[A-Z]'`;
+        do
+            echo '#setm,0xffffffffffffffff' | /home/omni/bin/omd ${app};
+            echo '#mon,3600;' | /home/omni/bin/omd ${app} > ${app}_${dateInSec}.txt &
+        done;
+        if [[ `echo $var|grep -i ina|wc -l` -gt 0 ]]; then
+            echo '#setm,0xffffffffffffffff' | /home/omni/bin/omd IP_INA;
+            echo '#mon,3600;' | /home/omni/bin/omd IP_INA > IP_INA_${dateInSec}.txt &
+        fi
+        if [[ `echo $var|grep -i ussd_ipf|wc -l` -gt 0 ]]; then
+            echo '#setm,0xffffffffffffffff' | /home/omni/bin/omd IP_USSD_IPF;
+            echo '#mon,3600;' | /home/omni/bin/omd IP_USSD_IPF > IP_USSD_IPF_${dateInSec}.txt &
+        fi
+        #DFcat cestart.202|grep -iE $var |awk '{print $1}'|grep '^[A-Z]'
+    else
+        echo "USAGE: getTrace <voice/diameter/notif/ussd/eci/osa/tsp> OR as mulitple option";
+    fi;
+    echo -e "$NC"
+}
+
+#-----------------------------------------------------------------
+# grep paragraph
+#-----------------------------------------------------------------
+
+paraGet ()
+{
+    find_string=$1;
+    find_in_file=$2;
+    if [[ ! -z $find_in_file ]]; then
+        if [[ -z $find_string ]]; then
+            helpMe;
+            return;
+        fi;
+        cmd="awk -v RS='' -v ORS='\n\n' '/${find_string}/' ${find_in_file}";
+    else
+        cmd="awk -v RS='' -v ORS='\n\n' '/${find_string}/'";
+    fi;
+    echo;
+    eval $cmd;
+    echo
+}
+
+#-----------------------------------------------------------------
+# tsp handle
+#-----------------------------------------------------------------
+
+tsp ()
+{
+    if [[ "$1" == "latest" ]]; then
+        echo "tsp,load-latest" | omd TSP;
+    else
+        if [[ "$1" == "tail" ]]; then
+            echo "#tr " | omd TSP | tail -20;
+        else
+            if [[ "$1" == "dump" ]] && [[ -z $2 ]]; then
+                echo "tsp,?" | omd TSP;
+            else
+                if [[ "$1" == "dump" ]] && [[ ! -z $2 ]]; then
+                    echo "tsp,dump-table=${2} > ${2}.log;" | omd TSP;
+                    echo "check ${2}.log .... ";
+                else
+                    helpMe;
+                fi;
+            fi;
+        fi;
+    fi
+}
+
+#-----------------------------------------------------------------
+# connect to DB
+# with argument it looks for that file to execute
+# it has some ways to find the id/pass, may not be the best
+# it also have some intelligence to find the active IP
+#-----------------------------------------------------------------
+_db ()
+{
+    if [[ ! -z $1 ]] && [[ -f $1 ]]; then
+        file=$1;
+    fi;
+    if [[ -z $_userName ]]; then
+        _userName=`cat /home/omni/conf/commonCfg.xml|grep "DefaultOracleUserName"|cut -d">" -f 2|cut -d"<" -f 1`;
+    fi;
+    if [[ -z $_password ]]; then
+        _password=`cat /home/omni/conf/commonCfg.xml|grep "DefaultOraclePassword"|cut -d">" -f 2|cut -d"<" -f 1`;
+    fi;
+    attempt=1;
+    if [[ `echo $_userName|wc|awk '{print $2}'` -eq 1 ]] && [[ -z $file ]]; then
+        echo -e "$GREEN \t Got Username=${RED}${_userName}${GREEN} from commonCfg.xml $NC";
+        if [[ `echo $_password|wc|awk '{print $2}'` -eq 0 ]] && [[ -z $file ]]; then
+            echo -e "$BLUE \t Using password=${RED}comverse${GREEN} as nothing is defined $NC";
+            _password=comverse;
+        else
+            if [[ `echo $_password|wc|awk '{print $2}'` -eq 1 ]] && [[ -z $file ]]; then
+                echo -e "$GREEN \t Using password=${RED}${_password}${GREEN} from commonCfg $NC";
+            else
+                echo -e "$RED \t failed to get password. NOT CONNECTING** $NC";
+                attempt=0;
+            fi;
+        fi;
+    fi;
+    if [[ -z $connect2 ]]; then
+        $ORACLE_HOME/bin/tnsping sdp9_n1.world > /dev/null 2> /dev/null;
+        ret=$?;
+        if [[ $ret -ne 0 ]]; then
+            $ORACLE_HOME/bin/tnsping sdp9_n2.world > /dev/null 2> /dev/null;
+            if [[ $? -eq 0 ]]; then
+                connect2=sdp9_n2.world;
+            fi;
+        else
+            connect2=sdp9_n1.world;
+        fi;
+    fi;
+    if [[ ! -z ${connect2} ]]; then
+        if [[ ! -z $file ]]; then
+            $ORACLE_HOME/bin/sqlplus -s $_userName/$_password@${connect2}  <<EOF
+@$file
+EOF
+
+        fi
+        if [[ $attempt -eq 1 ]] && [[ -z $file ]]; then
+            echo -e "$GREEN \t Connecting to $connect2 $NC";
+            cat > setmask.sql  <<'EOF'
+set lines 32000 colsep | tab off pages 0 feedback off
+alter session set nls_date_format = 'DD-MM-YYYY HH24:MI:SS' ;
+select 'Setting -> Set lines 32000 colsep | tab off pages 100 ' from dual;
+select 'Setting -> sysdate '|| sysdate ||' in nls_date_format = DD-MM-YYYY HH24:MI:SS' from dual;
+set pages 100 feedback on
+EOF
+
+            $ORACLE_HOME/bin/sqlplus $_userName/$_password@${connect2} @setmask.sql;
+        fi;
+    else
+        echo "Donno where to connect";
+    fi;
+    file="";
+    rm -f setmask.sql
+}
+
+#-----------------------------------------------------------------
+# desc the table , so u can grep the col names from command level
+#-----------------------------------------------------------------
+_desc ()
+{
+    if [[ ! -z $1 ]]; then
+        _userName=`cat /home/omni/conf/commonCfg.xml|grep "DefaultOracleUserName"|cut -d">" -f 2|cut -d"<" -f 1`;
+        _password=`cat /home/omni/conf/commonCfg.xml|grep "DefaultOraclePassword"|cut -d">" -f 2|cut -d"<" -f 1`;
+        attempt=1;
+        if [[ `echo $_userName|wc|awk '{print $2}'` -eq 1 ]]; then
+            if [[ `echo $_password|wc|awk '{print $2}'` -eq 0 ]]; then
+                _password=comverse;
+            fi;
+        fi;
+        if [[ $attempt -eq 1 ]]; then
+            cat > sample_query.sql  <<EOF
+set lines 100
+desc $1;
+exit;
+EOF
+
+            if [[ -z $connect2 ]]; then
+                $ORACLE_HOME/bin/tnsping sdp9_n1.world > /dev/null 2> /dev/null;
+                ret=$?;
+                if [[ $ret -ne 0 ]]; then
+                    $ORACLE_HOME/bin/tnsping sdp9_n2.world > /dev/null 2> /dev/null;
+                    if [[ $? -eq 0 ]]; then
+                        connect2=sdp9_n2.world;
+                    fi;
+                else
+                    connect2=sdp9_n1.world;
+                fi;
+            fi;
+            $ORACLE_HOME/bin/sqlplus -s $_userName/$_password@${connect2} @sample_query;
+        fi;
+    else
+        echo "Enter table name to describe";
+    fi;
+    rm -f sample_query.sql
+}
+
+#-----------------------------------------------------------------
+# get balance info and REQ from URE traces (insight)
+#-----------------------------------------------------------------
+
+_balget(){
+    col_grep -E ':\[[0-9]* -|REQ|MsgId1|checkClearCause:ClearCause|URG: ReasonCode:|populateUsageRecord, ErrorCode|USER_ACCOUNT_INFO' *URE_U*
+}
+
+
+#-----------------------------------------------------------------
+# just like dbaccess, get output in trnspose style
+# no control on what column to display, but u can grep as ur need
+# -t is the flag for tablesname
+# -w is the where condition (as many conditions but all within " ")
+# problem to fix
+# ===============
+# 1. atleast one time _db has to be exected. (bad design)
+#-----------------------------------------------------------------
+
+_dbaccess ()
+{
+    if [[ "$1" == "-t" ]]; then
+        tableName=$2;
+        cat > check_obj.sql  <<'EOF'
+set pages 0 feedback off
+select  OBJECT_TYPE from user_objects where OBJECT_NAME=upper('SAMPLE_TABLE');
+EOF
+
+        sed -i 's/SAMPLE_TABLE/'$tableName'/g' check_obj.sql;
+        objectType=`_db check_obj.sql`;
+        rm -f check_obj.sql;
+        if [[ "$objectType" == "SYNONYM" ]]; then
+            cat > check_syn.sql  <<'EOF'
+set pages 0 feedback off
+select table_name from user_synonyms where SYNONYM_NAME=upper('SAMPLE_TABLE');
+EOF
+
+            sed -i 's/SAMPLE_TABLE/'$tableName'/g' check_syn.sql;
+            tableName=`_db check_syn.sql`;
+            rm -f check_syn.sql;
+        fi;
+        q="from $tableName";
+    fi;
+    if [[ "$3" == "-w" ]]; then
+        q_1=`echo $q where $4`;
+        if [[ "$5" == "-a" ]]; then
+            q_2=`echo $q_1 and $6`;
+            q=$q_2;
+            q_2="";
+        else
+            q=$q_1;
+            q_1="";
+        fi;
+    fi;
+    echo $q;
+    cat > temp_proc.sql  <<'EOF'
+alter session set nls_date_format = 'DD-MM-YYYY HH24:MI:SS' ;
+set serveroutput on feedback off lines 32000
+DECLARE
+   cursor c_ColumnName is select column_name from USER_tab_cols where table_name=upper('TEMP_ACS');
+BEGIN
+dbms_output.put_line('set serveroutput on feedback off lines 32000');
+dbms_output.put_line('DECLARE');
+dbms_output.put_line('temp_table TEMP_ACS%ROWTYPE;');
+dbms_output.put_line('CURSOR c_customers is select * from TEMP_ACS;');
+dbms_output.put_line('BEGIN');
+dbms_output.put_line('For j in c_customers');
+dbms_output.put_line('LOOP');
+for i in c_ColumnName
+LOOP
+      dbms_output.put_line( 'dbms_output.put_line(RPAD('''|| i.column_name ||''',35)||'':''||j.'||i.column_name||');' );
+END LOOP;
+dbms_output.put_line('END LOOP;');
+dbms_output.put_line('END;');
+dbms_output.put_line('/');
+END;
+/
+
+EOF
+
+    sed -i 's/from TEMP_ACS/'"$q"'/g' temp_proc.sql;
+    sed -i 's/TEMP_ACS/'$tableName'/g' temp_proc.sql;
+    if [[ -f temp_proc.sql ]]; then
+        _db temp_proc.sql | sed '/The DB Time is/d' > temp_proc_r.sql;
+        _db temp_proc_r.sql | sed '/The DB Time is/d';
+        rm -f temp_proc_r.sql temp_proc.sql;
+        q="";
+    fi
+}
+
+#-----------------------------------------------------------------
+# Filter ur traces
+# for OCS _filter SID 0:0:1234|1:0:1234 <logname>
+# for URE _filter CRN 1234 <logname>
+# opps/tpps should also work like URE
+#-----------------------------------------------------------------
+
+_filter ()
+{
+    if [[ "$1" == "SID" ]]; then
+        if [[ ! -z $2 ]]; then
+            if [[ ! -z $3 ]] && [[ -f $3 ]]; then
+                awk '$0~"SID"{on=0};$0~"'$2'"{on=1};(on){print $0}' $3;
+            fi;
+        fi;
+    else
+        if [[ "$1" == "CRN" ]]; then
+            if [[ ! -z $2 ]]; then
+                if [[ ! -z $3 ]] && [[ -f $3 ]]; then
+                    awk '$0~"CRN"{on=0};$0~"'$2'"{on=1};(on){print $0}' $3;
+                fi;
+            fi;
+        else
+            echo "Unknown Input for filtering..";
+            helpMe;
+        fi;
+    fi
+}
+
+#-----------------------------------------------------------------
+# insight program to get crn of each sessionId
+# problem is the session should finish (limitation)
+#-----------------------------------------------------------------
+
+_crninfo ()
+{
+    if [[ ! -z $1 ]]; then
+        file=$1;
+        for l_cntx_n_rg in `grep "ipChargeItemId=rg=" $file |awk '{print $6"|"$8}'|sort -u`;
+        do
+            l_cntx=`echo  $l_cntx_n_rg|cut -d"|" -f 1`;
+            l_rg=`echo  $l_cntx_n_rg|cut -d"|" -f 2`;
+            t_cntx=`echo $l_cntx|sed -e 's/cntx=/this:/g'`;
+            t_sid=`grep "ChgItemCntx:initRtbFctrUpd: this:" $file |grep "$t_cntx"|head -1`;
+            if [[ `echo $t_sid |grep '^\['|wc -l` -eq 0 ]]; then
+                l_sid="**NULL SID**";
+            else
+                l_sid=`echo $t_sid|awk '{print $3}'`;
+            fi;
+            t_sid=`echo $l_cntx|cut -d"=" -f 2`;
+            t_crn=`grep "ChgCntx:resetMbrs: " $file |grep ${t_sid}|sort -u`;
+            if [[ `echo $t_crn |grep '^\['|wc -l` -eq 0 ]]; then
+                l_crn="**NULL CRN**";
+            else
+                l_crn=`echo $t_crn|awk '{print $NF}'|cut -d":" -f 2`;
+            fi;
+            echo "$l_cntx";
+            echo "$l_rg";
+            echo "$t_cntx";
+            echo "$l_sid";
+            echo "$l_crn";
+            echo "-";
+        done;
+    fi
+}
+
+#-----------------------------------------------------------------
+# get IP and some help to get connected
+#-----------------------------------------------------------------
+
+ip ()
+{
+    echo;
+    echo -ne "`hostname`'s ";
+    /sbin/ifconfig | grep -A 1 '^[eth]' | awk -F: '{print $2}' | awk '{print "IP-> "$1}' | grep '[0-9]$';
+    echo;
+    underline "SFTP COMMAND";
+    /sbin/ifconfig | grep -A 1 '^[eth]' | awk -F: '{print $2}' | awk '{print "sftp sncpuser@"$1}' | grep '[0-9]$';
+    /sbin/ifconfig | grep -A 1 '^[eth]' | awk -F: '{print $2}' | awk '{print "sftp root@"$1}' | grep '[0-9]$';
+    echo;
+    underline "SSH COMMAND";
+    /sbin/ifconfig | grep -A 1 '^[eth]' | awk -F: '{print $2}' | awk '{print "ssh sncpuser@"$1}' | grep '[0-9]$';
+    /sbin/ifconfig | grep -A 1 '^[eth]' | awk -F: '{print $2}' | awk '{print "ssh root@"$1}' | grep '[0-9]$';
+    echo
+}
+
+
+#-----------------------------------------------------------------
+# go to the tracing location
+# argument is folder name , if present and unique it will cd to
+#-----------------------------------------------------------------
+my()
+{
+    cd ~/_abh/traces;
+    if [[ ! -z $1 ]]; then
+        a_path=`find ./ -type d -name $1`;
+        if [[ ! -z $a_path ]] && [[ `echo $a_path |wc -w` -eq 1 ]]; then
+            cd $a_path;
+            tree -df;
+        else
+            echo "******may Have more such $1 OR not there*****";
+        fi;
+        pwd;
+        if [[ `pwd` == "/home/sncpuser/_abh/traces" ]]; then
+            tree -d -L 2;
+        fi;
+    else
+        tree -d -L 2;
+    fi
+}
+
+
+#-----------------------------------------------------------------
+# watch a process and stop when its up
+# watch a process and continue, second para something needed
+#-----------------------------------------------------------------
+
+watch ()
+{
+while [[ `tsp tail|grep "Connection and load SUCCESSFUL"|wc -l` -eq 0 ]];do echo tspWaiting;sleep 1;done
+    found=0;
+    if [[ ! -z $1 ]]; then
+        if [[ ! -z $2 ]]; then
+            while :; do
+                ps -ef | grep -i $1 | grep -iv grep;
+                sleep 2;
+                echo "..";
+            done;
+        else
+            while [[ $found -eq 0 ]]; do
+                ps -ef | grep -i $1 | grep -iv grep;
+                found=`ps -ef|grep -i $1 |grep -iv grep|wc -l`;
+                sleep 2;
+                echo "..";
+            done;
+            echo "My watch has ended.. "
+        fi;
+    else
+        echo "donno what to watch my watch";
+    fi
+}
+
+#-----------------------------------------------------------------
+# komd : I got intelligent
+# will turn to a serial killer if u force me "komd force"
+#-----------------------------------------------------------------
+
+
+komd ()
+{
+    if [[ -z $1 ]]; then
+        l_process="";
+        if [[ `ps -ef|grep -i omd|awk '$0~/\/home\/omni\/bin\/omd/{print}'|awk '{print $2}'|wc -l` -eq 0 ]];then
+            echo ' All are dead u Pyscho.. '
+        fi;
+        n=1;
+        for i in ` ps -ef|grep -i omd|awk '$0~/\/home\/omni\/bin\/omd/{print}'|awk '{print $2}'`;
+        do
+            l_parent_pid=`ps -ef|grep -i omd|awk '$0~/\/home\/omni\/bin\/omd/{print}'|awk '{print $3}'|sort -u`;
+            if [[ `echo $l_parent_pid |wc -w` -eq 1 ]]; then
+                l_proc=`ps -ef|grep $i|grep $l_parent_pid| grep -iv grep|awk '{print $NF}'`;
+                l_process+=" $l_proc";
+                #echo "killing $i";
+                if [[ `echo l_proc|wc -w` -eq 1 ]]; then
+                    kill $i
+                    echo -ne "${n}..";
+                    ((n++));
+                fi;
+            else
+                echo 'More parents , I am not mass murderer unless u force me ';
+                break;
+            fi;
+        done;
+        if [[ ! "$l_process" == "" ]]; then
+            echo "Killed $l_process";
+        fi;
+    else
+        if [[ "$1" == "force" ]]; then
+            killall omd && echo "Killed'em all , u made me do it";
+        else
+            echo "I said force me";
+        fi;
+    fi
+}
+
+
+s()
+{
+    if [[ -f /home/sncpuser/UserSubDetails ]];then
+        grep -i abhilash /home/sncpuser/UserSubDetails
+    fi
+}
