@@ -4,7 +4,7 @@
 # Just to ease my life and not to interfere in others!!!
 # yey and its a lot of FUN..
 #-----------------------------------------------------------------
-insideScriptgetVersion(){ echo "Version # V 11 Last Edited: 13-08-2020" ; }
+insideScriptgetVersion(){ echo "Version # V 11 Last Edited: 30-10-2020" ; }
 #-----------------------------------------------------------------
 #-----------------------------------------------------------------
 
