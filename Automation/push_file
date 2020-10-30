@@ -1,0 +1,95 @@
+#!/usr/bin/bash
+# copy getFunc from remote to all servers in SluHosts
+
+cat > 2.sh << 'EOF'
+#!/usr/bin/expect
+set timeout 60
+set IIIPPP [lindex $argv 0]
+set username [lindex $argv 1]
+set password [lindex $argv 2]
+set what_to_send [lindex $argv 3]
+set logf [open "/cygdrive/c/CodeRep/scripts/AmdocsScripts/Automation/transferLog" a]
+spawn sftp $username@$IIIPPP
+set prompt "sftp> $"
+expect {
+        "(yes/no"  {send "yes\r";exp_continue}
+        "password:" {send "$password\r";exp_continue}
+        -re $prompt 
+}
+send "cd /home/sncpuser/_abh\r"
+expect "sftp> $"
+send "put $what_to_send\r"
+expect {
+    #Check for progress, note does not work with all versions of SFTP
+    #If a match is found restart expect loop
+    -re "\[0-9]*%" {
+        set percent $expect_out(0,string)
+        puts $logf "File transfer at $percent, continuing..."
+        exp_continue
+    }
+
+    #Check for common errors, by no means all of them  
+    -re "Couldn't|(.*)disconnect|(.*)stalled" {
+         puts $logf "$IIIPPP Unable to transfer file"
+         exit 1
+    }
+    #OK continue
+    "sftp> $" {
+         puts $logf "$IIIPPP File transfer completed"
+    }
+    -re $prompt 
+}
+#expect "sftp> $"
+send "bye\n"
+EOF
+chmod +x 2.sh
+
+for i in `cat SluHosts |awk '{print $1}'|sort -u`;
+do
+>transferLog
+echo $i
+./2.sh $i sncpuser sncpuser getFunc 
+#h=`grep $i SluHosts|awk '{print $2}'`
+#echo -ne " $h "
+#cat transferLog
+done
+
+rm -f 2.sh
+
+
+cat > 2.sh << 'EOF'
+#!/usr/bin/expect
+set timeout 60
+set IIIPPP [lindex $argv 0]
+set username [lindex $argv 1]
+set password [lindex $argv 2]
+set what_to_send [lindex $argv 3]
+#set logf [open "/cygdrive/c/CodeRep/scripts/AmdocsScripts/Automation/transferLog" a]
+spawn ssh $username@$IIIPPP
+set prompt "SLU*"
+expect {
+        "(yes/no"  {send "yes\r";exp_continue}
+        "password:" {send "$password\r";exp_continue}
+        -re $prompt
+}
+send "cd /home/sncpuser/_abh\r"
+expect "SLU*"
+send "ls -lrt $what_to_send\r"
+expect "SLU*"
+send "exit\r"
+EOF
+chmod +x 2.sh
+
+
+for i in `cat SluHosts |awk '{print $1}'|sort -u`;
+do
+>transferLog
+echo $i
+./2.sh $i sncpuser sncpuser getFunc | grep getFunc
+#h=`grep $i SluHosts|awk '{print $2}'`
+#echo -ne " $h "
+#cat transferLog
+done
+
+rm -f 2.sh
+
